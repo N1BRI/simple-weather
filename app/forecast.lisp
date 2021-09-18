@@ -10,13 +10,27 @@
   (:import-from #:st-json
 		#:read-json
 		#:getjso*)
-  (:import-from #:quri
-		#:render-uri
-		#:make-uri)
   (:import-from #:drakma
 		#:http-request))
 
 (in-package #:simple-weather.forecast)
+
+(hunchentoot:define-easy-handler (forecasts-handler :uri "/forecasts")(lat long)
+  (setf (hunchentoot:content-type*) "text/html")
+  (let ((forecasts (get-weather-gov-forecast-links lat long)))
+    (forecasts-page :stylesheets simple-weather.common:*styles* :matches forecasts))) 
+
+(defun forecasts-page(&key (stylesheets nil)(matches nil))
+  (spinneret:with-html-string
+    (:doctype)
+    (:html
+     (:head
+      (:raw "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">")
+      (when stylesheets
+        (dolist (sheet stylesheets)
+	  (:raw (concatenate 'string
+			     "<link rel=\"stylesheet\" href=\"/app/static/css/" sheet "\"/>")))))
+      (:body (:p (format nil "~a" matches))))))
 
 (defun get-weather-gov-forecast-links(latitude longitude)
   "get the links to forecasts provided by weather.gov for given geocode lat-long"

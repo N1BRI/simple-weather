@@ -1,16 +1,8 @@
 (defpackage #:simple-weather.landing
   (:use #:cl)
   (:use #:simple-weather.common)
-  (:import-from #:st-json
-		#:read-json
-		#:getjso*)
-  (:import-from #:quri
-		#:render-uri
-		#:make-uri)
-  (:import-from #:drakma
-		#:http-request)
-    (:import-from #:hunchentoot
-		  #:define-easy-handler))
+  (:import-from #:hunchentoot
+		#:define-easy-handler))
 
 (in-package #:simple-weather.landing)
 
