@@ -8,13 +8,16 @@
   :serial t
   :depends-on (#:drakma
 	       #:hunchentoot
-	       #:cl-css
 	       #:spinneret
+	       #:spinneret/ps
+	       #:parenscript
 	       #:st-json
 	       #:quri)
   :components ((:module "app"
 		:serial t
-		:components ((:file "forecast")
+		:components ((:file "common")
 			     (:file "server")
-			     (:static-file "css/marx.min.css")))
+			     (:file "landing")
+			     (:file "location")
+			     (:file "forecast")			     ))
 	       (:file "simple-weather")))

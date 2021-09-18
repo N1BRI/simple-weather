@@ -1,0 +1,44 @@
+body{
+    height: 100%;
+    margin: 20px;
+}
+
+h5{
+}
+
+h2{
+    color: rgba(13, 144, 245, .8);
+}
+
+form{
+    max-width: 600px;
+}
+
+form label{
+        color: rgba(13, 144, 245, .8);
+}
+
+.ilikethis{
+    background-color: rgba(252, 242, 180, 1);
+}
+
+.api-list{
+   clear: both;
+    position: absolute;
+    height: 170px;
+    bottom: 0;
+    width: 100%;
+}
+
+.api-list strong {
+    padding: 0 15px 0 15px;
+    display: flex;
+    color: rgba(101,111, 111, .8);
+}
+
+.msg{
+    min-width: 400px;
+}
+ul{
+    padding-bottom: 10px;
+}
