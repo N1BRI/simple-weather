@@ -6,7 +6,7 @@ body{
 h5{
 }
 
-h2{
+h2 h3 h4{
     color: rgba(13, 144, 245, .8);
 }
 
@@ -18,27 +18,39 @@ form label{
         color: rgba(13, 144, 245, .8);
 }
 
-.ilikethis{
-    background-color: rgba(252, 242, 180, 1);
+jjj{
+    
 }
 
-.api-list{
-   clear: both;
-    position: absolute;
-    height: 170px;
-    bottom: 0;
-    width: 100%;
+
+.night{
+
 }
 
-.api-list strong {
-    padding: 0 15px 0 15px;
+.forecast-container{
     display: flex;
-    color: rgba(101,111, 111, .8);
+    flex-wrap: wrap;
+    justify-content: center;
+		   
 }
 
-.msg{
-    min-width: 400px;
+.seven-day-item{
+    border: 1px solid rgba(0, 0, 45, .3);
+    border-radius: 4px;
+    text-align: center;
+    margin: 10px;
+    box-shadow: 4px 4px 8px rgba(10,10,20, .3);
+    padding: 10px;
+    width: 400px;
 }
-ul{
-    padding-bottom: 10px;
+
+.seven-day-item h4{
+    color: rgba(12, 100, 225, .7);
+}
+
+.seven-day-tem strong i{
+    color: rgba(12, 100, 225, .7);
+}
+img{
+    border-radius: 50%;
 }

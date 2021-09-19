@@ -11,8 +11,10 @@
 		#:make-uri)
   (:import-from #:drakma
 		#:http-request)
-    (:import-from #:hunchentoot
-		  #:define-easy-handler))
+  (:import-from #:spinneret
+		#:with-html-string)
+  (:import-from #:hunchentoot
+		#:define-easy-handler))
 
 (in-package #:simple-weather.location)
 
@@ -51,6 +53,7 @@
 		 (:a :href (format nil "/forecasts?lat=~a&long=~a"
 				   (car (cdr (cdr (assoc "position" match :test #'string=))))
 				   (first (cdr (assoc "position" match :test #'string=))))
+		     :onclick (simple-weather.common:show-loader)
 		     "get this forecast")
 		 (:hr))))
 	    (:h1 "There were no matches")))))))

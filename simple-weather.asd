@@ -12,6 +12,7 @@
 	       #:spinneret/ps
 	       #:parenscript
 	       #:st-json
+	       #:local-time
 	       #:quri)
   :components ((:module "app"
 		:serial t

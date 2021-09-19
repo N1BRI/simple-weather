@@ -11,26 +11,48 @@
 		#:read-json
 		#:getjso*)
   (:import-from #:drakma
-		#:http-request))
+		#:http-request)
+  (:import-from #:spinneret
+		#:with-html-string))
 
 (in-package #:simple-weather.forecast)
 
 (hunchentoot:define-easy-handler (forecasts-handler :uri "/forecasts")(lat long)
   (setf (hunchentoot:content-type*) "text/html")
-  (let ((forecasts (get-weather-gov-forecast-links lat long)))
-    (forecasts-page :stylesheets simple-weather.common:*styles* :matches forecasts))) 
+  (let ((urls (get-weather-gov-forecast-links lat long)))
+    (forecasts-page :stylesheets simple-weather.common:*styles* :urls urls))) 
 
-(defun forecasts-page(&key (stylesheets nil)(matches nil))
-  (spinneret:with-html-string
-    (:doctype)
-    (:html
-     (:head
-      (:raw "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">")
-      (when stylesheets
-        (dolist (sheet stylesheets)
-	  (:raw (concatenate 'string
-			     "<link rel=\"stylesheet\" href=\"/app/static/css/" sheet "\"/>")))))
-      (:body (:p (format nil "~a" matches))))))
+(defun forecasts-page(&key (stylesheets nil)(urls nil))
+  (let ((seven-day (first (get-forecast (cdr (first urls))))))
+    (spinneret:with-html-string
+      (:doctype)
+      (:html
+       (:head
+	(:raw "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">")
+	(when stylesheets
+          (dolist (sheet stylesheets)
+	    (:raw (concatenate 'string
+			       "<link rel=\"stylesheet\" href=\"/app/static/css/" sheet "\"/>")))))
+       (:body
+	(:div :class "forecast-container"
+	      (dolist (day (st-json:getjso* "properties.periods" seven-day))
+		(let ((name (st-json:getjso* "name" day)))
+		  (:div :class "seven-day-item"
+			(:div (:h4 name))
+			(:div
+			 (local-time:format-timestring nil (local-time:parse-timestring (st-json:getjso* "startTime" day)) :format '(:month "-" :day "-" :year)))
+			(:div (:img :src (st-json:getjso* "icon" day)))
+			(:div (:strong "Temperature: ")
+			      (concatenate 'string
+					   (write-to-string (st-json:getjso* "temperature" day))
+					   " °"
+					   (st-json:getjso* "temperatureUnit" day)))
+			(:div (:strong "Windspeed: ")
+			      (st-json:getjso* "windSpeed" day))
+			(:div (:strong "Wind Direction: ")
+			      (st-json:getjso* "windDirection" day))
+			(:div (:strong (:i (st-json:getjso* "detailedForecast" day)))
+			))))))))))
 
 (defun get-weather-gov-forecast-links(latitude longitude)
   "get the links to forecasts provided by weather.gov for given geocode lat-long"
@@ -39,8 +61,9 @@
 		    (cons (st-json:read-json resp) status))))
     (handler-case ;we just want nil on failure
 	(progn
-	  (list (cons "hourly"  (st-json:getjso* "properties.forecastHourly" (first response)))
-		(cons "seven-day" (st-json:getjso* "properties.forecast" (first response)))))
+	  (list 
+	   (cons "seven-day" (st-json:getjso* "properties.forecast" (first response)))
+	   (cons "hourly"  (st-json:getjso* "properties.forecastHourly" (first response)))))
       (t()))))
 
 
@@ -49,16 +72,9 @@
 		      (drakma:http-request url :want-stream t)
 		    (cons (st-json:read-json resp) status))))response))
 
+(defun map-forecast(forecast-array)
+  (loop for forecast in forecast-array
+	do(print (st-json::jso-alist forecast))))
+
   (defun status-ok(response)
     (ignore-errors (= (cdr response) 200)))
-
-
-;; (defun get-all-forecasts(street city state)
-;;   (let ((gci (get-geocode-info street city state)))
-;;      (when (status-ok gci)
-;;        (let ((lat-long (get-latitude-longitude (first gci))))
-;;  	 (when lat-long
-;;  	  (let ((urls (get-weather-gov-forecast-links (car lat-long)(cdr lat-long))))
-;; 	    (let ((seven-day (get-forecast (cdr (assoc "seven-day" urls :test #'string=))))
-;; 		  (hourly (get-forecast (cdr (assoc "hourly" urls :test #'string=)))))
-;; 	      (list seven-day hourly))))))))

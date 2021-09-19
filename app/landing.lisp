@@ -2,7 +2,9 @@
   (:use #:cl)
   (:use #:simple-weather.common)
   (:import-from #:hunchentoot
-		#:define-easy-handler))
+		#:define-easy-handler)
+  (:import-from #:spinneret
+		#:with-html-string))
 
 (in-package #:simple-weather.landing)
 
@@ -37,4 +39,4 @@
 	 (:label :attrs (list :for "state") "State:")
 	(:input :name "state" :id "state" :type "text")
 	(:br)
-	(:button :id "submitBtn" "Find Location" )))))))
+	(:button "Find Location"  )))))))
