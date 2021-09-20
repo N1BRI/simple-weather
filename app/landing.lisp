@@ -22,14 +22,14 @@
         (dolist (sheet stylesheets)
 	  (:raw (concatenate 'string
 			     "<link rel=\"stylesheet\" href=\"/app/static/css/" sheet "\"/>")))))
-      (:body
+     (:body				
        (:h2 "Simple U.S. Weather" )
        (:h5 "Just the U.S. weather")
        (:br)
        (:div
 	(when errors
 	  (:span errors))
-	(:form :action "/locate" :method "POST"
+	(:form :id "info" :action "/locate" :method "POST"
 	 (:label :attrs (list :for "street") "Street:")
 	 (:input :name "street" :id "street" :type "text")
 	 
@@ -39,4 +39,20 @@
 	 (:label :attrs (list :for "state") "State:")
 	(:input :name "state" :id "state" :type "text")
 	(:br)
-	(:button "Find Location"  )))))))
+	(:button :type "submit" :id "submit-btn" "Find Location"))
+	(:script (parenscript:ps
+		   (let ((sumbit-btn ((parenscript:@ document get-element-by-id) "submit-btn"))
+			 (frm ((parenscript:@ document get-element-by-id) "info")))
+			(setf (parenscript:@ sumbit-btn onclick) 
+			      (lambda (event)
+				 ((parenscript:@ event prevent-default))
+				;;((parenscript:@ document body append) frm)
+				((parenscript:@ frm submit) )
+				(setf (parenscript:@ document body inner-h-t-m-l) "Preparing Forecast...")
+			        ))))))))))
+
+
+
+
+         
+
