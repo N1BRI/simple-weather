@@ -78,3 +78,34 @@
 
   (defun status-ok(response)
     (ignore-errors (= (cdr response) 200)))
+
+
+(defun xx(seven-day)
+  (loop for day in seven-day
+	collect(make-instance 'forecast
+			      :start-time (st-json:getjso "startTime" day)
+			      :end-time (st-json:getjso "endTime" day)
+			      :is-day-time (st-json:getjso "isDaytime" day)
+			      :name (st-json:getjso "name" day)
+			      :icon (st-json:getjso "icon" day)
+			      :temperature (st-json:getjso "temperature" day)
+			      :wind-speed (st-json:getjso "windSpeed" day)
+			      :wind-direction (st-json:getjso "windDirection" day)
+			      :detailed-forecast (st-json:getjso "detailedForecast" day))))
+
+(defclass forecast()
+  ((start-time :initarg :start-time :accessor start-time)
+   (end-time :initarg :end-time :accessor end-time)
+   (is-day-time :initarg :is-day-time :accessor is-day-time)
+   (name :initarg :name :accessor name)
+   (icon :initarg :icon :accessor icon)
+   (temperature :initarg :temperature :accessor temperature)
+   (wind-speed :initarg :wind-speed :accessor wind-speed)
+   (wind-direction :initarg :wind-direction :accessor wind-direction)
+   (detailed-forecast :initarg :detailed-forecast :accessor detailed-forecast)))
+
+
+		
+			       
+			
+	    
