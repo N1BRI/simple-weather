@@ -80,19 +80,6 @@
     (ignore-errors (= (cdr response) 200)))
 
 
-(defun xx(seven-day)
-  (loop for day in seven-day
-	collect(make-instance 'forecast
-			      :start-time (st-json:getjso "startTime" day)
-			      :end-time (st-json:getjso "endTime" day)
-			      :is-day-time (st-json:getjso "isDaytime" day)
-			      :name (st-json:getjso "name" day)
-			      :icon (st-json:getjso "icon" day)
-			      :temperature (st-json:getjso "temperature" day)
-			      :wind-speed (st-json:getjso "windSpeed" day)
-			      :wind-direction (st-json:getjso "windDirection" day)
-			      :detailed-forecast (st-json:getjso "detailedForecast" day))))
-
 (defclass forecast()
   ((start-time :initarg :start-time :accessor start-time)
    (end-time :initarg :end-time :accessor end-time)
@@ -105,7 +92,41 @@
    (detailed-forecast :initarg :detailed-forecast :accessor detailed-forecast)))
 
 
-		
-			       
-			
-	    
+(defun map-json-to-forecasts(forecast-json)
+  "maps json array of forecasts to corresponding clos obj"
+  (loop for forecast in forecast-json
+	collect(make-instance 'forecast
+			      :start-time  (local-time:parse-timestring
+					    (st-json:getjso "startTime" forecast))
+			      :end-time  (local-time:parse-timestring
+					  (st-json:getjso "endTime" forecast))
+			      :is-day-time (st-json:getjso "isDaytime" forecast)
+			      :name (st-json:getjso "name" forecast)
+			      :icon (st-json:getjso "icon" forecast)
+			      :temperature (st-json:getjso "temperature" forecast)
+			      :wind-speed (st-json:getjso "windSpeed" forecast)
+			      :wind-direction (st-json:getjso "windDirection" forecast)
+			      :detailed-forecast (st-json:getjso "detailedForecast" forecast))))
+
+
+
+(defun get-forecast-days(forecasts)
+  "returns a list containing unique dates(month-day) from 7-ish day forecast"
+  (remove-duplicates
+   (loop for day in forecasts
+	 collect (local-time:format-timestring nil (start-time day) :format '(:month "-" :day))) :test #'string=))
+
+(defun get-forecast-days-list(forecasts)
+  "coverts list of unique dates into list of lists with date as first element"
+  (loop for day in (get-forecast-days forecasts)
+	collect(list day)))
+	  
+(defun map-forecasts-to-dates(date-list forecasts)
+    (loop for day in date-list
+	  do(loop for forecast in forecasts
+		  do(progn
+		      (when (string= (car day)
+				     (local-time:format-timestring
+				      nil
+				      (start-time forecast) :format '(:month "-" :day)))
+		        (push forecast (cdr day) ))))))
