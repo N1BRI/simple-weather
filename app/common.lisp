@@ -12,7 +12,7 @@
 
 
 (in-package :simple-weather.common)
-(defparameter *styles* (list "marx.min.css" "base.css"))
+(defparameter *styles* (list "marx.min.css" "base.css" "weather-icons.min.css"))
 
 (defun show-loader()
   (ps (setf (parenscript:@ document body inner-h-t-m-l) "<h3>Preparing Forecast...</h3>")))

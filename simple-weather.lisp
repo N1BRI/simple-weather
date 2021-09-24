@@ -4,10 +4,7 @@
 ;;;; https://geocoding.geo.census.gov/geocoder/Geocoding_Services_API.html
 
 (defpackage #:simple-weather
-  (:use #:cl)
-  (:import-from #:simple-weather.server
-		#:start-server
-		#:stop-server))
+  (:use #:cl))
 	
 
 (in-package #:simple-weather)

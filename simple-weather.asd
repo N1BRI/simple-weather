@@ -12,13 +12,15 @@
 	       #:spinneret/ps
 	       #:parenscript
 	       #:st-json
+	       #:str
 	       #:local-time
 	       #:quri)
-  :components ((:module "app"
+  :components ((:file "package")
+	       (:module "app"
 		:serial t
 		:components ((:file "common")
 			     (:file "server")
-			     (:file "landing")
-			     (:file "location")
+			    ; (:file "landing")
+			    ; (:file "location")
 			     (:file "forecast")			     ))
 	       (:file "simple-weather")))

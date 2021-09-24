@@ -59,32 +59,3 @@
 	    (:h1 "There were no matches")))))))
 
 
-(defun get-geocode-info(street city state)
-  "Execute request to retrieve geocode info"
-  (let ((request (build-geocode-request street city state)))
-    (let ((response (multiple-value-bind(resp status)
-			(drakma:http-request request :want-stream t)
-		      (cons resp status))))
-      (setf (first response)(st-json:read-json (first response)))
-      (cons response "error parsing response")response)))
-
-(defun get-location-matches(geocode-info)
-  "parse out address and lat,long from matches in geocode request response"
-    (let ((address-matches(st-json:getjso* "result.addressMatches" geocode-info)))
-      (when address-matches
-	(loop for match in address-matches
-	      collect(list 
-		      (cons "address" (st-json:getjso* "matchedAddress" match))
-		      (cons "position" (list
-					(st-json:getjso* "coordinates.x" match)
-					(st-json:getjso* "coordinates.y"  match))))))))
-
-(defun build-geocode-request(street city state)
-  "Build uri to hit the U.S. census bureau's geocode api"
-  (quri:render-uri
-   (quri:make-uri :defaults "https://geocoding.geo.census.gov/geocoder/locations/address"
-		  :query (list(cons "street"  street)
-			   (cons "city"  city)
-			   (cons "state"  state)
-			   (cons "benchmark"  2020)
-			   (cons "format"  "json")))))

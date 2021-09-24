@@ -25,6 +25,9 @@
      (:body				
        (:h2 "Simple U.S. Weather" )
        (:h5 "Just the U.S. weather")
+       (:i :class "wi wi-day-sunny wi-flip-vertical")(:br)
+       (:i :class "wi wi-day-sleet-storm wi-flip-vertical")(:br)
+       (:i :class "wi wi-storm-showers wi-flip-vertical")(:br)
        (:br)
        (:div
 	(when errors

@@ -4,80 +4,7 @@
 ;;;; https://weather-gov.github.io/api/general-faqs
 ;;;; https://geocoding.geo.census.gov/geocoder/Geocoding_Services_API.html
 
-(defpackage #:simple-weather.forecast
-  (:use #:cl)
-  (:use #:simple-weather.common)
-  (:import-from #:st-json
-		#:read-json
-		#:getjso*)
-  (:import-from #:drakma
-		#:http-request)
-  (:import-from #:spinneret
-		#:with-html-string))
-
 (in-package #:simple-weather.forecast)
-
-(hunchentoot:define-easy-handler (forecasts-handler :uri "/forecasts")(lat long)
-  (setf (hunchentoot:content-type*) "text/html")
-  (let ((urls (get-weather-gov-forecast-links lat long)))
-    (forecasts-page :stylesheets simple-weather.common:*styles* :urls urls))) 
-
-(defun forecasts-page(&key (stylesheets nil)(urls nil))
-  (let ((seven-day (first (get-forecast (cdr (first urls))))))
-    (spinneret:with-html-string
-      (:doctype)
-      (:html
-       (:head
-	(:raw "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">")
-	(when stylesheets
-          (dolist (sheet stylesheets)
-	    (:raw (concatenate 'string
-			       "<link rel=\"stylesheet\" href=\"/app/static/css/" sheet "\"/>")))))
-       (:body
-	(:div :class "forecast-container"
-	      (dolist (day (st-json:getjso* "properties.periods" seven-day))
-		(let ((name (st-json:getjso* "name" day)))
-		  (:div :class "seven-day-item"
-			(:div (:h4 name))
-			(:div
-			 (local-time:format-timestring nil (local-time:parse-timestring (st-json:getjso* "startTime" day)) :format '(:month "-" :day "-" :year)))
-			(:div (:img :src (st-json:getjso* "icon" day)))
-			(:div (:strong "Temperature: ")
-			      (concatenate 'string
-					   (write-to-string (st-json:getjso* "temperature" day))
-					   " °"
-					   (st-json:getjso* "temperatureUnit" day)))
-			(:div (:strong "Windspeed: ")
-			      (st-json:getjso* "windSpeed" day))
-			(:div (:strong "Wind Direction: ")
-			      (st-json:getjso* "windDirection" day))
-			(:div (:strong (:i (st-json:getjso* "detailedForecast" day)))
-			))))))))))
-
-(defun get-weather-gov-forecast-links(latitude longitude)
-  "get the links to forecasts provided by weather.gov for given geocode lat-long"
-  (let ((response (multiple-value-bind (resp status)
-		      (drakma:http-request (format nil "https://api.weather.gov/points/~a,~a" latitude longitude) :want-stream t)
-		    (cons (st-json:read-json resp) status))))
-    (handler-case ;we just want nil on failure
-	(progn
-	  (list 
-	   (cons "seven-day" (st-json:getjso* "properties.forecast" (first response)))
-	   (cons "hourly"  (st-json:getjso* "properties.forecastHourly" (first response)))))
-      (t()))))
-
-
-(defun get-forecast(url)
-  (let ((response (multiple-value-bind(resp status)
-		      (drakma:http-request url :want-stream t)
-		    (cons (st-json:read-json resp) status))))response))
-
-(defun map-forecast(forecast-array)
-  (loop for forecast in forecast-array
-	do(print (st-json::jso-alist forecast))))
-
-  (defun status-ok(response)
-    (ignore-errors (= (cdr response) 200)))
 
 
 (defclass forecast()
@@ -89,24 +16,85 @@
    (temperature :initarg :temperature :accessor temperature)
    (wind-speed :initarg :wind-speed :accessor wind-speed)
    (wind-direction :initarg :wind-direction :accessor wind-direction)
+   (short-forecast :initarg :short-forecast :accessor short-forecast)
    (detailed-forecast :initarg :detailed-forecast :accessor detailed-forecast)))
+
+(defclass address-match()
+  ((address :initarg :address :accessor address)
+   (latitude :initarg :latitude :accessor latitude)
+   (longitude :initarg :longitude :accessor longitude)))
+
+(defun get-address-matches(street city state)
+  "gets address matches for street, city, address from geocode api"
+  (let ((resp (get-geocode-info street city state)))
+    (when (status-ok resp)
+      (parse-location-matches (first resp)))))
+	
+(defun get-geocode-info(street city state)
+  "execute request to retrieve geocode info"
+  (let ((request (build-geocode-request street city state)))
+    (let ((response (multiple-value-bind(resp status)
+			(drakma:http-request request :want-stream t)
+		      (cons resp status))))
+      (setf (first response)(st-json:read-json (first response)))
+      (cons response "error parsing response")response)))
+
+(defun parse-location-matches(geocode-info)
+  "parse out address and lat,long from matches in geocode request response"
+    (let ((address-matches(getjso* "result.addressMatches" geocode-info)))
+      (when address-matches
+	(loop for match in address-matches
+	      collect(make-instance 'address-match 
+				    :address (getjso "matchedAddress" match)
+				    :latitude (getjso* "coordinates.y" match)
+				    :longitude(getjso* "coordinates.x"  match)))))))
+
+(defun build-geocode-request(street city state)
+  "Build uri to hit the U.S. census bureau's geocode api"
+  (quri:render-uri
+   (quri:make-uri :defaults "https://geocoding.geo.census.gov/geocoder/locations/address"
+		  :query (list(cons "street"  street)
+			   (cons "city"  city)
+			   (cons "state"  state)
+			   (cons "benchmark"  2020)
+			   (cons "format"  "json")))))
+
+(defun get-forecast-links(latitude longitude)
+  "get the links to forecasts provided by weather.gov for given geocode lat-long"
+  (let ((response (multiple-value-bind (resp status)
+		      (http-request (format nil "https://api.weather.gov/points/~a,~a" latitude longitude) :want-stream t)
+		    (cons (st-json:read-json resp) status))))
+    (handler-case ;we just want nil on failure
+	(progn
+	  (list 
+	   (cons "seven-day" (getjso* "properties.forecast" (first response)))
+	   (cons "hourly"  (getjso* "properties.forecastHourly" (first response)))))
+      (t()))))
+
+
+(defun get-forecast(url)
+  (let ((response (multiple-value-bind(resp status)
+		      (http-request url :want-stream t)
+		    (cons (read-json resp) status))))response))
+
+(defun status-ok(response)
+  (ignore-errors (= (cdr response) 200)))
 
 
 (defun map-json-to-forecasts(forecast-json)
   "maps json array of forecasts to corresponding clos obj"
   (loop for forecast in forecast-json
 	collect(make-instance 'forecast
-			      :start-time  (local-time:parse-timestring
-					    (st-json:getjso "startTime" forecast))
-			      :end-time  (local-time:parse-timestring
-					  (st-json:getjso "endTime" forecast))
-			      :is-day-time (st-json:getjso "isDaytime" forecast)
-			      :name (st-json:getjso "name" forecast)
-			      :icon (st-json:getjso "icon" forecast)
-			      :temperature (st-json:getjso "temperature" forecast)
-			      :wind-speed (st-json:getjso "windSpeed" forecast)
-			      :wind-direction (st-json:getjso "windDirection" forecast)
-			      :detailed-forecast (st-json:getjso "detailedForecast" forecast))))
+			      :start-time  (parse-timestring (getjso "startTime" forecast))
+			      :end-time  (parse-timestring (getjso "endTime" forecast))
+			      :is-day-time (getjso "isDaytime" forecast)
+			      :name (getjso "name" forecast)
+			      :icon (getjso "icon" forecast)
+			      :temperature (getjso "temperature" forecast)
+			      :wind-speed (getjso "windSpeed" forecast)
+			      :wind-direction (getjso "windDirection" forecast)
+			      :short-forecast (getjso "shortForecast" forecast)
+			      :detailed-forecast (getjso "detailedForecast" forecast))))
 
 
 
@@ -114,7 +102,8 @@
   "returns a list containing unique dates(month-day) from 7-ish day forecast"
   (remove-duplicates
    (loop for day in forecasts
-	 collect (local-time:format-timestring nil (start-time day) :format '(:month "-" :day))) :test #'string=))
+	 collect (format-timestring nil (start-time day)
+				    :format '(:month "/" :day "/" :year))) :test #'string=))
 
 (defun get-forecast-days-list(forecasts)
   "coverts list of unique dates into list of lists with date as first element"
@@ -128,5 +117,54 @@
 		      (when (string= (car day)
 				     (local-time:format-timestring
 				      nil
-				      (start-time forecast) :format '(:month "-" :day)))
+				      (start-time forecast) :format '(:month "/" :day "/" :year)))
 		        (push forecast (cdr day) ))))))
+
+(defun map-forecasts-to-forecasts(date-list hours-list)
+    (loop for day in date-list
+	  do(loop for hour in hours-list
+		  do(progn
+		      (when (string= (car day)(car hour))
+		        (push hour (cdr day) ))))))
+
+(defun get-icon-identifiers(icon-url)
+  "parses identifiers from icon url for forecast"
+  (let* ((_(first(last (split "land" icon-url)))) ; break in half at 'land'	 
+	 (__(first (split "?" _))))               ; split at question mark - take first half
+    (remove "" (split "/" __) :test #'string=)))  ; split remains on '/' and remove empty strings
+       
+
+(defvar temp-list (list "skc"
+"few"
+"sct"
+"bkn"
+"ovc"
+"wind_skc"
+"wind_few"
+"wind_sct"
+"wind_bkn"
+"wind_ovc"
+"snow"
+"rain_snow"
+"rain_sleet"
+"snow_sleet"
+"fzra"
+"rain_fzra"
+"snow_fzra"
+"sleet"
+"rain"
+"rain_showers"
+"rain_showers_hi"
+"tsra"
+"tsra_sct"
+"tsra_hi"
+"tornado"
+"hurricane"
+"tropical_storm"
+"dust"
+"smoke"
+"haze"
+"hot"
+"cold"
+"blizzard"
+"fog"))
