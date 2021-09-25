@@ -13,12 +13,12 @@
 
 (defparameter *app-acceptor* nil)
 
-(defparameter *styles* (list "marx.min.css" "base.css"))
 
-(defun start-server (&optional (port 4242) (document-root ""))
+(defun start-server (&optional (port 4242)
+		       (document-root (asdf:system-relative-pathname "simple-weather" "app")))
   "entry point -- starts up hunchentoot acceptor if not already running"
   (setf *app-acceptor* (make-instance 'hunchentoot:easy-acceptor :port port
-								:document-root document-root))
+								 :document-root document-root))
   (unless (hunchentoot:started-p *app-acceptor*)
     (hunchentoot:start *app-acceptor*)))
 

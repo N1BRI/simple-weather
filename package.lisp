@@ -14,4 +14,8 @@
 			  #:format-timestring
 			  #:parse-timestring)
   (:shadowing-import-from #:str
-			  #:split))
+			  #:split)
+  (:export #:forecast
+	   #:address-match
+	   #:get-address-forecast-url-list
+	   #:get-forecast))

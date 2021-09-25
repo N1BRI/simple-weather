@@ -1,5 +1,4 @@
 
-
 (defpackage #:simple-weather.common
   (:use #:cl)
   (:import-from #:spinneret
