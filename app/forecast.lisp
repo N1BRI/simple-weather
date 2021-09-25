@@ -128,7 +128,7 @@
 				     (local-time:format-timestring
 				      nil
 				      (start-time forecast) :format '(:month "/" :day "/" :year)))
-		        (push forecast (cdr day) )))))date-list))
+		       (push forecast (cdr (last day)))))))date-list))
 
 
 (defun get-forecast-days(forecasts)
