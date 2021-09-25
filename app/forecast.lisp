@@ -1,5 +1,5 @@
 ;;;; forecast.lisp
-;;;; Contains all code related to retrieving weather forecasts
+;;;; Contains all code related to retrieving & parsing weather forecasts
 ;;;; helpful api docs related to this code:
 ;;;; https://weather-gov.github.io/api/general-faqs
 ;;;; https://geocoding.geo.census.gov/geocoder/Geocoding_Services_API.html
@@ -17,12 +17,14 @@
    (wind-speed :initarg :wind-speed :accessor wind-speed)
    (wind-direction :initarg :wind-direction :accessor wind-direction)
    (short-forecast :initarg :short-forecast :accessor short-forecast)
-   (detailed-forecast :initarg :detailed-forecast :accessor detailed-forecast)))
+   (detailed-forecast :initarg :detailed-forecast :accessor detailed-forecast))
+  (:documentation "12hr forecast from api.weather.gov"))
 
 (defclass address-match()
   ((address :initarg :address :accessor address)
    (latitude :initarg :latitude :accessor latitude)
-   (longitude :initarg :longitude :accessor longitude)))
+   (longitude :initarg :longitude :accessor longitude))
+  (:documentation "address with latitude & longitude coords from geocoding.geo.census.gov"))
 
 (defun get-address-matches(street city state)
   "gets address matches for street, city, address from geocode api"
@@ -47,7 +49,7 @@
 	      collect(make-instance 'address-match 
 				    :address (getjso "matchedAddress" match)
 				    :latitude (getjso* "coordinates.y" match)
-				    :longitude(getjso* "coordinates.x"  match)))))))
+				    :longitude(getjso* "coordinates.x"  match))))))
 
 (defun build-geocode-request(street city state)
   "Build uri to hit the U.S. census bureau's geocode api"
@@ -63,7 +65,7 @@
   "get the links to forecasts provided by weather.gov for given geocode lat-long"
   (let ((response (multiple-value-bind (resp status)
 		      (http-request (format nil "https://api.weather.gov/points/~a,~a" latitude longitude) :want-stream t)
-		    (cons (st-json:read-json resp) status))))
+		    (cons (read-json resp) status))))
     (handler-case ;we just want nil on failure
 	(progn
 	  (list 
@@ -72,7 +74,7 @@
       (t()))))
 
 
-(defun get-forecast(url)
+(defun get-request(url)
   (let ((response (multiple-value-bind(resp status)
 		      (http-request url :want-stream t)
 		    (cons (read-json resp) status))))response))
@@ -89,7 +91,7 @@
 			      :end-time  (parse-timestring (getjso "endTime" forecast))
 			      :is-day-time (getjso "isDaytime" forecast)
 			      :name (getjso "name" forecast)
-			      :icon (getjso "icon" forecast)
+			      :icon (icon-url-to-icon (getjso "icon" forecast))
 			      :temperature (getjso "temperature" forecast)
 			      :wind-speed (getjso "windSpeed" forecast)
 			      :wind-direction (getjso "windDirection" forecast)
@@ -128,43 +130,56 @@
 		        (push hour (cdr day) ))))))
 
 (defun get-icon-identifiers(icon-url)
-  "parses identifiers from icon url for forecast"
-  (let* ((_(first(last (split "land" icon-url)))) ; break in half at 'land'	 
-	 (__(first (split "?" _))))               ; split at question mark - take first half
-    (remove "" (split "/" __) :test #'string=)))  ; split remains on '/' and remove empty strings
-       
+  "parses identifiers from icon-url"
+  (let* ((_(first(last (split "land" icon-url))))
+	 (__(first (split "?" _)))  ;split on ? take first
+	 (___ (remove "" (split "/" __) :test #'string=)))
+    (map 'list (lambda (x) (first (split "," x))) ___)))
 
-(defvar temp-list (list "skc"
-"few"
-"sct"
-"bkn"
-"ovc"
-"wind_skc"
-"wind_few"
-"wind_sct"
-"wind_bkn"
-"wind_ovc"
-"snow"
-"rain_snow"
-"rain_sleet"
-"snow_sleet"
-"fzra"
-"rain_fzra"
-"snow_fzra"
-"sleet"
-"rain"
-"rain_showers"
-"rain_showers_hi"
-"tsra"
-"tsra_sct"
-"tsra_hi"
-"tornado"
-"hurricane"
-"tropical_storm"
-"dust"
-"smoke"
-"haze"
-"hot"
-"cold"
-"blizzard"
-"fog"))
+(defun icon-url-to-icon (icon-url)
+  "takes an icon-url and returns the matching weather icon classname"
+ (let ((icon-ids (get-icon-identifiers icon-url)))
+   (cond ((string= (first icon-ids) "day")
+	  (first (rest (assoc (second icon-ids) *icon-map* :test #'string= ))))
+	 ((string= (first icon-ids) "night")
+	  (first(rest  (rest (assoc (second icon-ids) *icon-map* :test #'string=))))))))
+
+(defun get-weather-icon(forecast)
+  (icon-ids-to-icon (get-icon-identifiers (icon forecast))))
+
+
+(defparameter *icon-map* (list
+		   '("skc". ("wi wi-day-sunny" "wi wi-night-clear"))
+		   '("few". ("wi wi-day-cloudy-high" "wi wi-night-alt-cloudy-high" ))
+		   '("sct". ("wi wi-day-cloudy" "wi wi-night-alt-partly-cloudy"))
+		   '("bkn". ("wi wi-day-cloudy" "wi wi-night-alt-cloudy"))
+		   '("ovc". ("wi wi-day-cloudy" "wi wi-night-alt-cloudy"))
+		   '("wind_skc". ("wi wi-day-light-windy" "wi wi-night-alt-cloudy-windy"))
+		   '("wind_few". ("wi wi-day-cloudy-windy" "wi wi-night-alt-cloudy-windy"))
+		   '("wind_sct". ("wi wi-day-cloudy-windy" "wi wi-night-alt-cloudy-windy"))
+		   '("wind_bkn". ("wi wi-day-cloudy-windy" "wi wi-night-alt-cloudy-windy"))
+		   '("wind_ovc". ("wi wi-day-cloudy-windy" "wi wi-night-alt-cloudy-windy"))
+		   '("snow". ("wi wi-day-snow" "wi wi-night-alt-snow"))
+		   '("rain_snow".  ("wi wi-day-rain-mix" "wi wi-night-rain-mix"))
+		   '("rain_sleet". ("wi wi-day-sleet" "wi wi-night-alt-sleet"))
+		   '("snow_sleet". ("wi wi-day-sleet" "wi wi-night-alt-sleet"))
+		   '("fzra". ("wi wi-day-sleet" "wi wi-night-alt-sleet"))
+		   '("rain_fzra". ("wi wi-day-sleet" "wi wi-night-alt-sleet"))
+		   '("snow_fzra". ("wi wi-day-sleet" "wi wi-night-alt-sleet"))
+		   '("sleet". ("wi wi-day-sleet" "wi wi-night-alt-sleet"))
+		   '("rain". ("wi wi-day-rain" "wi wi-night-alt-rain"))
+		   '("rain_showers". ("wi wi-day-rain" "wi wi-night-alt-rain"))
+		   '("rain_showers_hi". ("wi wi-day-rain" "wi wi-night-alt-rain"))
+		   '("tsra". ("wi wi-day-thunderstorm" "wi wi-night-alt-thunderstorm"))
+		   '("tsra_sct". ("wi wi-day-storm-showers" "wi wi-night-alt-storm-showers"))
+		   '("tsra_hi". ("wi wi-day-storm-showers" "wi wi-night-alt-storm-showers"))
+		   '("tornado". ("wi wi-tornado" "wi wi-tornado"))
+		   '("hurricane". ("wi wi-hurricane" "wi wi-hurricane"))
+		   '("tropical". ("storm" "wi wi-thunderstorm" "wi wi-thunderstorm"))
+		   '("dust". ("wi wi-dust" "wi wi-dust"))
+		   '("smoke". ("wi wi-smoke" "wi wi-smoke"))
+		   '("haze". ("wi wi-day-haze" "wi wi-day-haze"))
+		   '("hot". ("wi wi-hot" "wi wi-hot"))
+		   '("cold". ("wi wi-snowflake-cold" "wi wi-snowflake-cold"))
+		   '("blizzard". ("wi wi-snow" "wi wi-night-alt-snow"))
+		   '("fog". ("wi wi-day-fog" "wi wi-night-fog"))))
