@@ -3,7 +3,7 @@
 (asdf:defsystem #:simple-weather
   :description "Simple-weather is just a simple interface for weather.gov's local forecast apis"
   :author "Brian Beegan brianbeegan@protonmail.com"
-  :license  "Public Domain"
+  :license  "MIT License"
   :version "0.0.1"
   :serial t
   :depends-on (#:drakma
