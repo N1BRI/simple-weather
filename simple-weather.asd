@@ -20,7 +20,8 @@
 		:serial t
 		:components ((:file "common")
 			     (:file "server")
-			    ; (:file "landing")
-			    ; (:file "location")
-			     (:file "forecast")			     ))
+			     (:file "landing")
+			     (:file "forecast")
+			     (:file "location")
+			     (:file "weather")))
 	       (:file "simple-weather")))

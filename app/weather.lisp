@@ -49,7 +49,7 @@
 		     (:br)
 		     (:i :class (simple-weather.forecast::icon (second forecast)))
 		     (:br)
-		     (:strong "Temperature: ") (:span (simple-weather.forecast::temperature (second forecast)))(:br)
+		     (:strong "Temperature: ") (:span (concatenate 'string  (write-to-string (simple-weather.forecast::temperature (second forecast))) "F")) (:br)
 		     (:strong "Wind Speed: ") (:span simple-weather.forecast::(wind-speed (second forecast)))(:br)
 		     (:strong "Wind Direction: ") (:span simple-weather.forecast::(wind-direction (second forecast)))(:br)
 		     (:p (simple-weather.forecast::detailed-forecast (second forecast)))
