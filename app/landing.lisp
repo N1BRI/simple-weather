@@ -8,7 +8,7 @@
 
 (in-package #:simple-weather.landing)
 
-(hunchentoot:define-easy-handler (weather :uri "/landing")()
+(hunchentoot:define-easy-handler (weather :uri "/")()
   (setf (hunchentoot:content-type*) "text/html")
   (landing-page :stylesheets simple-weather.common:*styles*))
 
@@ -25,9 +25,6 @@
      (:body				
        (:h2 "Simple U.S. Weather" )
        (:h5 "Just the U.S. weather")
-       (:i :class "wi wi-day-sunny wi-flip-vertical")(:br)
-       (:i :class "wi wi-day-sleet-storm wi-flip-vertical")(:br)
-       (:i :class "wi wi-storm-showers wi-flip-vertical")(:br)
        (:br)
        (:div
 	(when errors
@@ -42,18 +39,7 @@
 	 (:label :attrs (list :for "state") "State:")
 	(:input :name "state" :id "state" :type "text")
 	(:br)
-	(:button :type "submit" :id "submit-btn" "Find Location"))
-	(:script (parenscript:ps
-		   (let ((sumbit-btn ((parenscript:@ document get-element-by-id) "submit-btn"))
-			 (frm ((parenscript:@ document get-element-by-id) "info")))
-			(setf (parenscript:@ sumbit-btn onclick) 
-			      (lambda (event)
-				 ((parenscript:@ event prevent-default))
-				;;((parenscript:@ document body append) frm)
-				((parenscript:@ frm submit) )
-				(setf (parenscript:@ document body inner-h-t-m-l) "Preparing Forecast...")
-			        ))))))))))
-
+	(:button :type "submit" :id "submit-btn" "Find Location")))))))
 
 
 
