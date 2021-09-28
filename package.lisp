@@ -65,3 +65,20 @@
 			  #:forecast)
   (:shadowing-import-from #:local-time
 			  #:format-timestring))
+
+(defpackage #:simple-weather.location
+  (:use #:cl)
+  (:use #:simple-weather.common)
+  (:shadowing-import-from #:spinneret
+		#:with-html-string)
+  (:shadowing-import-from #:hunchentoot
+			  #:define-easy-handler)
+  (:import-from #:simple-weather.forecast
+		#:get-address-forecast-url-list))
+
+(defpackage #:simple-weather
+  (:use #:cl)
+  (:import-from #:simple-weather.server
+		#:start-server)
+  (:export #:run-app))
+

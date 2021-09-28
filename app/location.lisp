@@ -1,12 +1,5 @@
-(defpackage #:simple-weather.location
-  (:use #:cl)
-  (:use #:simple-weather.common)
-  (:shadowing-import-from #:spinneret
-		#:with-html-string)
-  (:shadowing-import-from #:hunchentoot
-			  #:define-easy-handler)
-  (:import-from #:simple-weather.forecast
-		#:get-address-forecast-url-list))
+;;;; location.lisp -- view for location matches
+
 (in-package #:simple-weather.location)
 
 

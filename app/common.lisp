@@ -7,22 +7,17 @@
 			     "/app/static/css/marx.min.css"
 			     "/app/static/css/base.css"))
 
-(defun show-loader()
-  (ps (setf (parenscript:@ document body inner-h-t-m-l)
-	      "<h2>Simple U.S. Weather</h2>
-	      <h5> Just the U.S. weather</h5>
-	      <br>
-	      <p>searching for location</p>")))
 	     
  (defmacro with-page ((&key title )(&key styles) &body body)
    `(with-html-string
       (:doctype)
       (:html
-       (:head
-	(:meta (:meta :name "viewport"
-		      :content "width=device-width, initial-scale=1.0"))
-	       (when ,styles
-		 (dolist (sheet ,styles)
-		   (:link :href sheet :rel "stylesheet")))
-         (:title ,title))
-        (:body ,@body))))
+       (:head 
+	      (:link :rel "icon" :type "image/png" :href "/app/static/map.png")
+	      (:meta :name "viewport"
+		     :content "width=device-width, initial-scale=1.0")
+	      (when ,styles
+		(dolist (sheet ,styles)
+		  (:link :href sheet :rel "stylesheet")))
+              (:title ,title))
+       (:body ,@body))))
