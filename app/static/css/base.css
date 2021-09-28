@@ -11,8 +11,15 @@ h5, h6{
     color: rgba(132, 144, 176, .8);
 }
 
+.banner, .no-match{
+    margin-left: 10px;
+}
+
+
+
 form{
     max-width: 600px;
+    margin-left: 10px;
 }
 
 .main-date{

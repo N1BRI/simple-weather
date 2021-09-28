@@ -2,16 +2,20 @@
 (defpackage #:simple-weather.common
   (:use #:cl)
   (:import-from #:spinneret
-		#:with-html-string)
+		#:with-html-string
+		#:with-html)
   (:import-from #:parenscript
 		#:ps
 		#:getprop)
   (:export *styles*
-	   #:show-loader))
+	   #:show-loader
+	   #:with-page))
 
 
 (in-package :simple-weather.common)
-(defparameter *styles* (list "weather-icons.min.css"  "marx.min.css" "base.css"))
+(defparameter *styles* (list "/app/static/css/weather-icons.min.css"
+			     "/app/static/css/marx.min.css"
+			     "/app/static/css/base.css"))
 
 (defun show-loader()
   (ps (setf (parenscript:@ document body inner-h-t-m-l)
@@ -20,3 +24,15 @@
 	      <br>
 	      <p>searching for location</p>")))
 	     
+ (defmacro with-page ((&key title )(&key styles) &body body)
+   `(with-html-string
+      (:doctype)
+      (:html
+       (:head
+	(:meta (:meta :name "viewport"
+		      :content "width=device-width, initial-scale=1.0"))
+	       (when ,styles
+		 (dolist (sheet ,styles)
+		   (:link :href sheet :rel "stylesheet")))
+         (:title ,title))
+        (:body ,@body))))

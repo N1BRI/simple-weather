@@ -1,12 +1,12 @@
 # simple-weather
-### _brian beegan <brianbeegan@protonmail.com>_
+### _<brianbeegan@protonmail.com>_
 This is a simple interface for weather.gov local forecast apis.
 ![Preview](https://github.com/bbeegs/simple-weather/blob/main/preview.png?raw=true)
 ## License
 
 MIT License
 
-Copyright (c) [year] [fullname]
+Copyright (c) [2021] [Brian Beegan]
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
