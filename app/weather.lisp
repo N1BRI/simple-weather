@@ -7,8 +7,6 @@
 (define-easy-handler (locate :uri "/forecast" :default-request-type :post)(link address)
   (setf (hunchentoot:content-type*) "text/html")
   (let ((forecasts (get-forecast link)))
-    (when (null forecasts) ;; one retry to account for spottiness in response. 
-      (setf forecasts (get-forecast link)))
     (if forecasts
 	(with-page (:title address)(:styles *styles*) 
 	  (:div :class "banner" (:a :href "/" (:h2 "Simple U.S. Weather" ))
