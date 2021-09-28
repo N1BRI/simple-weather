@@ -1,18 +1,8 @@
-
-(defpackage #:simple-weather.common
-  (:use #:cl)
-  (:import-from #:spinneret
-		#:with-html-string
-		#:with-html)
-  (:import-from #:parenscript
-		#:ps
-		#:getprop)
-  (:export *styles*
-	   #:show-loader
-	   #:with-page))
-
+;;;; common.lisp contains functions and variables
+;;;; frequently needed in most files
 
 (in-package :simple-weather.common)
+
 (defparameter *styles* (list "/app/static/css/weather-icons.min.css"
 			     "/app/static/css/marx.min.css"
 			     "/app/static/css/base.css"))

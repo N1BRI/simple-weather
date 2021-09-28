@@ -1,10 +1,4 @@
-(defpackage #:simple-weather.landing
-  (:use #:cl)
-  (:use #:simple-weather.common)
-  (:import-from #:hunchentoot
-		#:define-easy-handler)
-  (:import-from #:spinneret
-		#:with-html-string))
+;;;; landing.lisp -- simple initial form
 
 (in-package #:simple-weather.landing)
 

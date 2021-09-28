@@ -1,13 +1,4 @@
-
-(defpackage #:simple-weather.server
-  (:use #:cl)
-  (:import-from #:hunchentoot
-		#:start
-		#:stop
-		#:define-easy-handler
-		#:started-p)
-  (:export #:start-server
-	   #:stop-server))
+;;;; server.lisp -- contains principal server logic
 
 (in-package :simple-weather.server)
 

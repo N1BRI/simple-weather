@@ -1,15 +1,6 @@
-(defpackage #:simple-weather.weather
-  (:use #:cl)
-  (:use #:simple-weather.common)
-  (:shadowing-import-from #:spinneret
-		#:with-html-string)
-  (:shadowing-import-from #:hunchentoot
-			  #:define-easy-handler)
-  (:shadowing-import-from #:simple-weather.forecast
-			  #:get-forecast
-			  #:forecast)
-  (:shadowing-import-from #:local-time
-			  #:format-timestring))
+;;;; weather.lisp contains all code responsible for displaying a 7-day forecast
+
+
 (in-package #:simple-weather.weather)
 
 
