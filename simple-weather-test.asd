@@ -7,4 +7,5 @@
   :components ((:module "t"
                 :serial t
                 :components
-                ((:file "simple-weather")))))
+                ((:file "forecast")
+		 (:file "simple-weather")))))
