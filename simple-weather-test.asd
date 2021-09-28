@@ -3,8 +3,8 @@
   :author "brian beegan <brianbeegan@protonmail.com>"
   :license ""
   :depends-on (:simple-weather
-               :fiveam)
+               :parachute)
   :components ((:module "t"
                 :serial t
                 :components
-                ((:file "forecast")))))
+                ((:file "simple-weather")))))
