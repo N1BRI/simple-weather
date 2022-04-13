@@ -1,6 +1,7 @@
 # simple-weather
 ### _<brianbeegan@protonmail.com>_
 This is a simple interface for weather.gov local forecast apis.
+Unfinished and buggy :)
 ![Preview](https://github.com/bbeegs/simple-weather/blob/main/preview.png?raw=true)
 ## License
 
